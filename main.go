@@ -41,23 +41,31 @@ type Message struct {
 var mutex = &sync.Mutex{}
 
 func main() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal(err)
+	// Load .env file, with fallback to default port and difficulty
+	if err := godotenv.Load(); err != nil {
+		log.Println("No .env file found, using default configurations")
 	}
 
-	go func() {
-		t := time.Now()
-		genesisBlock := Block{}
-		genesisBlock = Block{0, t.String(), 0, calculateHash(genesisBlock), "", difficulty, ""}
-		spew.Dump(genesisBlock)
-
-		mutex.Lock()
-		Blockchain = append(Blockchain, genesisBlock)
-		mutex.Unlock()
-	}()
+	go initializeBlockchain()
 	log.Fatal(run())
+}
 
+func initializeBlockchain() {
+	t := time.Now()
+	genesisBlock := Block{
+		Index:      0,
+		Timestamp:  t.String(),
+		Data:       0,
+		Hash:       calculateHash(Block{}),
+		PrevHash:   "",
+		Difficulty: getDifficulty(),
+	}
+
+	spew.Dump(genesisBlock)
+
+	mutex.Lock()
+	Blockchain = append(Blockchain, genesisBlock)
+	mutex.Unlock()
 }
 
 // web server
