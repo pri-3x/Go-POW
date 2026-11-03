@@ -136,7 +136,7 @@ func generateBlock(oldBlock Block, Data int) Block {
 	newBlock.Timestamp = t.String()
 	newBlock.Data = Data
 	newBlock.PrevHash = oldBlock.Hash
-	newBlock.Difficulty = difficulty
+	newBlock.Difficulty = getDifficulty()
 
 	for i := 0; ; i++ {
 		hex := fmt.Sprintf("%x", i)
@@ -158,4 +158,14 @@ func generateBlock(oldBlock Block, Data int) Block {
 func isHashValid(hash string, difficulty int) bool {
 	prefix := strings.Repeat("0", difficulty)
 	return strings.HasPrefix(hash, prefix)
+}
+
+// getDifficulty returns the number of leading zeros a block hash needs.
+// It reads DIFFICULTY from the environment (or .env) and falls back to the
+// default constant when it is unset or not a positive integer.
+func getDifficulty() int {
+	if v, err := strconv.Atoi(os.Getenv("DIFFICULTY")); err == nil && v > 0 {
+		return v
+	}
+	return difficulty
 }
